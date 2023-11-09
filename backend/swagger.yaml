@@ -1,0 +1,3418 @@
+swagger: "2.0"
+info:
+  description: "A web-based  judging  application  that  allows  users,  namely Admin, to host events and Participants, to create their project ideas or join an existing project and Judges, to be seamlessly involved in rating the assigned projects. Participants create and join the projects in an event. Eventually, judges are allowed to rate and admins can announce the winners of the projects in each event that are assigned to them. Each user has their roles and access to perform their respective operations described in the upcoming sections."
+  version: "1.0.0"
+  title: "SeamlessJudging"
+host: "stark.cse.buffalo:3000"
+schemes:
+- "http"
+paths:
+  /api/v1/user/admin-signup:
+    post:
+      tags:
+      - "Admin-User-Actions"
+      summary: "Create an admin user without frontend support."
+      description: "Create an Admin to create an initial user on the platform using a curl request. Only deployer would be able to trigger this request using Admin-Creation-Code available on .env."
+      operationId: "admin-signup"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Admin-Creation-Code"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Admin object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/Signup"
+      responses:
+        "201":
+          description: "successful signup"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "User registered successfully"
+              response_data:
+                $ref: "#/definitions/SignupResponse"
+        "400":
+          description: "Invalid user is already available. Proceed to login."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid user is already available. Proceed to login."
+          
+  /api/v1/user/signup:
+    post:
+      tags:
+      - "User"
+      summary: "Signup the participant user."
+      description: "Allow the participants to signup on the portal."
+      operationId: "signup"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Particpant object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/Signup"
+      responses:
+        "201":
+          description: "successful signup"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "User registered successfully"
+              response_data:
+                $ref: "#/definitions/SignupResponse"
+        "400":
+          description: "Invalid user is already available. Proceed to login."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid user is already available. Proceed to login."
+  
+  /api/v1/user:
+    post:
+      tags:
+      - "Admin-User-Actions"
+      summary: "SignUp other participants and admins by existing Admin user."
+      description: "Only admin is allowed to create other users."
+      operationId: "signup-by-admin"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Particpant object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/SignupAdmin"
+      responses:
+        "201":
+          description: "successful signup"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "User registered successfully"
+              response_data:
+                $ref: "#/definitions/SignupResponse"
+        "400":
+          description: "Invalid user is already available. Proceed to login."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid user is already available. Proceed to login."
+    
+    get:
+      tags:
+      - "Admin-User-Actions"
+      summary: "Get all users available in the platform."
+      description: "Get all users available in the platform."
+      operationId: "getAllUsers"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "profile retrieve"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "Profile retrieved successfully"
+              response_data:
+                type: "array"
+                items:
+                  $ref: "#/definitions/UserByAdmin"
+        "400":
+          description: "Invalid access-token is expired."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid access-token is expired."
+          
+  /api/v1/user/login:
+    post:
+      tags:
+      - "User"
+      summary: "Login to the portal."
+      description: "Allows the users (Instructors, Clients, Students, Judges) to login into the tool based on their roles."
+      operationId: "login"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Login object that needs to be used to proceed."
+        required: true
+        schema:
+          $ref: "#/definitions/Login"
+      responses:
+        "201":
+          description: "successful login"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "User loggedin successfully"
+              response_data:
+                $ref: "#/definitions/LoginResponse"
+        "400":
+          description: "Invalid credentials."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid credentials."
+          
+  /api/v1/user/refresh-token:
+    get:
+      tags:
+      - "User"
+      summary: "RefreshToken to generate a new access-token"
+      description: "RefreshToken to generate a new access-token"
+      operationId: "refreshToken"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+        "201":
+          description: "token generated successfully"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "Token generated successfully"
+              response_data:
+                $ref: "#/definitions/refreshTokenResponse"
+        "400":
+          description: "Invalid refresh-token is expired. Please proceed to login."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid refresh-token is expired. Please proceed to login."
+                      
+  /api/v1/user/profile:
+    get:
+      tags:
+      - "User"
+      summary: "Get user profile"
+      description: "Access the profile of the user logged in."
+      operationId: "getProfile"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "profile retrieve"
+          schema:
+            type: "object"
+            properties:
+              response_str:
+                  type: "string"
+                  example: "Profile retrieved successfully"
+              response_data:
+                $ref: "#/definitions/User"
+        "400":
+          description: "Invalid access-token is expired."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid access-token is expired."
+    post:
+      tags:
+      - "User"
+      summary: "Update user profile"
+      description: "Update the profile of the user logged in."
+      operationId: "updateProfile"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successfully updated"
+          schema:
+            $ref: "#/definitions/ProfileUpdate"
+        "400":
+          description: "Invalid email-id provided."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid email-id provided."
+  
+  /api/v1/user/update/{userId}:
+    put:
+      tags:
+      - "Admin-User-Actions"
+      summary: "Update other users profile by Admin."
+      description: "Update other users profile by Admin."
+      operationId: "updateProfileByAdmin"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "userId"
+        in: "path"
+        description: "ID of user"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        "200":
+          description: "successfully updated"
+          schema:
+            $ref: "#/definitions/ProfileUpdateAdmin"
+        "400":
+          description: "Invalid email-id provided."
+          schema:
+            type: "object"
+            properties:
+              error:
+                  type: "object"
+                  properties:
+                    message:
+                      type: "string"
+                      example: "Invalid email-id provided."
+    
+  
+  /api/v1/event:
+    post:
+      tags:
+      - "Event"
+      summary: "Add Event"
+      description: "Only admin can add events"
+      operationId: "addEvent"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Particpant object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/EventRequest"
+      responses:
+          "201":
+            description: "successfully created"
+            schema:
+              $ref: "#/definitions/EventResponse"
+          "400":
+            description: "Invalid event with this name already exists."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid event with this name already exists."
+    get:
+      tags:
+      - "Event"
+      summary: "Retrieve Event"
+      description: "Only admin can retreive events"
+      operationId: "getEvent"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "name"
+        in: "query"
+        description: "Name of event using which it has to be filtered."
+        type: "string"
+      - name: "download_excel"
+        in: "query"
+        description: "Indicates if an excel has to be download Eg: TRUE"
+        type: "string"
+      responses:
+          "200":
+            description: "successfull"
+            schema:
+              $ref: "#/definitions/EventGetResponse"
+          "404":
+            description: "Not Found"
+
+  /api/v1/event/{eventId}/detail:
+    get:
+      tags:
+      - "Event"
+      summary: "Retrieve Event-Detail"
+      description: "Only admin can retreive events"
+      operationId: "getEventDetail"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              $ref: "#/definitions/EventGetDetailResponse"
+          "400":
+            description: "Invalid eventID."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid eventID."
+
+  /api/v1/event/{eventId}:
+    put:
+      tags:
+      - "Event"
+      summary: "Edit Event"
+      description: "Only admin can add edit events"
+      operationId: "updateEvent"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Particpant object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/UpdateEvent"
+      - name: "eventId"
+        in: "path"
+        description: "ID of pet to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "201":
+            description: "update successfull"
+            schema:
+              $ref: "#/definitions/EventResponse"
+          "400":
+            description: "Invalid eventID."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid eventID."
+  
+  /api/v1/event/{eventId}/auto-assign-judges:
+    post:
+      tags:
+      - "Event"
+      summary: "Auto Assigns Judges to projects"
+      description: "Only admin can add assign judges automatically"
+      operationId: "assignJudges"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Number of judges to assigned to projects."
+        required: true
+        schema:
+          type: "object"
+          properties:
+            judges_size:
+              type: "integer"
+              example: 4
+      responses:
+          "200":
+            description: "Assign judges successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Assign judges successful"
+                response_data:
+                    type: "object"
+          "400":
+            description: "Error - Number of judges avaialble be >= judges to be assigned!"
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Error - Number of judges avaialble be >= judges to be assigned!"
+  
+  /api/v1/event/{eventId}/attach-detach:
+    put:
+      tags:
+      - "Event"
+      summary: "Attach or Detach new references to the events."
+      description: "Attach or Detach new references to the events."
+      operationId: "attachDetach"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Number of judges to assigned to projects."
+        required: true
+        schema:
+          type: "object"
+          properties:
+            update_type:
+              type: "string"
+              example: "ATTACH"
+            sponsors:
+                $ref: "#/definitions/ArrayOfInt"
+            judges:
+                $ref: "#/definitions/ArrayOfInt"
+            projects:
+                $ref: "#/definitions/ArrayOfInt"
+            winner_categories:
+                $ref: "#/definitions/ArrayOfInt"
+              
+      responses:
+          "200":
+            description: "Attach/Detach references successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Attach/Detach references successful"
+                response_data:
+                    type: "object"
+          "400":
+            description: "Invalid. Event is already completed, cannot attach/detach of new references."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid. Event is already completed, cannot attach/detach of new references."
+
+  /api/v1/project:
+    post:
+      tags:
+      - "Project"
+      summary: "Add Project"
+      description: "Only admin and participant can add projects"
+      operationId: "addProject"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Project object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/ProjectRequest"
+      responses:
+          "201":
+            description: "successfully created"
+            schema:
+              $ref: "#/definitions/ProjectResponse"
+          "400":
+            description: "Invalid project with this name already exists."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid project with this name already exists."
+
+    get:
+      tags:
+      - "Project"
+      summary: "Retrieve Project"
+      description: "Only admin and participant can retreive events"
+      operationId: "getProject"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "name"
+        in: "query"
+        description: ""
+        type: "string"
+      - name: "course_codes"
+        in: "query"
+        description: "[1,2] etc course_code_ids"
+        type: "string"
+      - name: "event_id"
+        in: "query"
+        description: "EventID to be considered if the projects related has to be included or excluded."
+        type: "string"
+      - name: "event_filter"
+        in: "query"
+        description: "Indicates if the event has to be included. INCLUDE or EXCLUDE"
+        type: "string"
+      - name: "download_excel"
+        in: "query"
+        description: "Indicates if an excel has to be download Eg: TRUE"
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Projects retrieved successfully"
+                response_data:
+                  type: "object"
+                  properties:
+                    ongoing_projects:
+                      type: "array"
+                      items:
+                        $ref: "#/definitions/ProjectListResponse"
+                    all_projects:
+                      type: "array"
+                      items:
+                        $ref: "#/definitions/ProjectListResponse"
+                    my_projects:
+                      type: "array"
+                      items:
+                        $ref: "#/definitions/ProjectListResponse"
+                download_path:
+                  type: "string"
+                  example: "C://User/projects.xlsx"
+          "404":
+            description: "Not Found"
+
+  /api/v1/project/{projectId}/detail:
+    get:
+      tags:
+      - "Project"
+      summary: "Retrieve Project-Detail"
+      description: ""
+      operationId: "getProjectDetail"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "201":
+            description: "successfully retrieved"
+            schema:
+              $ref: "#/definitions/ProjectGetDetailResponse"
+          "400":
+            description: "Invalid projectID."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid projectID."
+
+  /api/v1/project/{projectId}:
+    put:
+      tags:
+      - "Project"
+      summary: "Update Project-Detail"
+      description: "only admin and one who created the project"
+      operationId: "updateProject"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Project object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/ProjectRequest"
+      responses:
+        "200":
+          description: "successfully updated"
+          schema:
+            $ref: "#/definitions/ProjectUpdateResponse"
+        "400":
+            description: "Invalid project with this name already exists."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid project with this name already exists."
+
+  /api/v1/project/{projectId}/join:
+    post:
+      tags:
+      - "Project"
+      summary: "Join Project"
+      description: "Only participant can join projects"
+      operationId: "joinProject"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "201":
+            description: "successfully joined"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Project joined successfully"
+                response_data:
+                  type: "object"
+          "400":
+            description: "Project team-size full. Please raise a request to Admin to join."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Project team-size full. Please raise a request to Admin to join."
+                      code:
+                        type: "string"
+                        example: "TEAM_SIZE_EXCEEDED"
+
+  /api/v1/project/{projectId}/upload-content:
+    post:
+      tags:
+      - "Project"
+      summary: "Upload content to a Project"
+      description: "Only participant can upload to a project provided he is in the project"
+      operationId: "uploadProjectContent"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Upload content to a project"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            content_type:
+              type: "string"
+              example: "poster"
+            content:
+              type: "string"
+              example: "C://User/Desktop/poster.jpg"
+      responses:
+          "201":
+            description: "successfully added content to the project"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Content posted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+  
+  /api/v1/project/{projectId}/event/{eventId}/assign-judges:
+    post:
+      tags:
+      - "ProjectEvent"
+      summary: "Manually Assign Judges to a project of an event."
+      description: "Manually Assign Judges to a project of an event."
+      operationId: "manualAssignJudges"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Judges to be assigned to the project"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            judges:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Judges assigned successfully."
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judges assigned successfully."
+                response_data:
+                  type: "object"
+          "400":
+            description: "Invalid. Event is already completed, cannot assign judges now."
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid. Event is already completed, cannot assign judges now."
+  
+  /api/v1/project/{projectId}/event/{eventId}/winner:
+    post:
+      tags:
+      - "ProjectEvent"
+      summary: "Designate a project of an event as a winner."
+      description: "Designate a project of an event as a winner."
+      operationId: "assignWinner"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Provide winner-category to be assigned."
+        required: true
+        schema:
+          type: "object"
+          properties:
+            winner_category_id:
+              type: "integer"
+              example: 1
+      responses:
+          "201":
+            description: "Winner posted successfully!!"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Winner posted successfully!!"
+                response_data:
+                  type: "object"
+          "400":
+            description: "Invalid winner-category-id for event!!"
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "Invalid winner-category-id for event!!"
+  
+    delete:
+      tags:
+      - "ProjectEvent"
+      summary: "Unmark a project of an event as a winner."
+      description: "Unmark a project of an event as a winner."
+      operationId: "unAssignWinner"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "200":
+            description: "Winner deleted successfully!!"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Winner deleted successfully!!"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+  
+  /api/v1/project/{projectId}/event/{eventId}:
+    put:
+      tags:
+      - "ProjectEvent"
+      summary: "Update table-number of a project of an event."
+      description: "Update table-number of a project of an event."
+      operationId: "updateTableNumber"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Provide table-number to be assigned."
+        required: true
+        schema:
+          type: "object"
+          properties:
+            table_number:
+              type: "integer"
+              example: 1
+      responses:
+          "201":
+            description: "EventProject updated successfully!!"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "EventProject updated successfully!!"
+                response_data:
+                  type: "object"
+          "400":
+            description: "TableNumber - 1 is already assigned to project1"
+            schema:
+              type: "object"
+              properties:
+                error:
+                    type: "object"
+                    properties:
+                      message:
+                        type: "string"
+                        example: "TableNumber - 1 is already assigned to project1"
+  
+  /api/v1/project/{projectId}/event/{eventId}/scores:
+    get:
+      tags:
+      - "ProjectEvent"
+      summary: "Get Scores of a project for an event."
+      description: "Get Scores of a project for an event."
+      operationId: "getProjectEventScores"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "200":
+            description: "Scores retrieved successfully!!"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Scores retrieved successfully!!"
+                response_data:
+                  type: "object"
+                  properties:
+                    user_id:
+                        type: integer
+                        example: 1
+                    first_name:
+                        type: "string"
+                        example: "John"
+                    middle_name:
+                        type: "string"
+                        example: ""
+                    last_name:
+                        type: "string"
+                        example: "Doe"
+                    email:
+                        type: "string"
+                        example: "john@abc.com"
+                    status:
+                        type: "string"
+                        example: "ACTIVE"
+                    scores:
+                        type: "array"
+                        items:
+                          type: "object"
+                          properties:
+                            score_category_id:
+                              type: "integer"
+                              example: 1
+                            score_category_name:
+                              type: "string"
+                              example: Implementation
+                            value:
+                              type: "integer"
+                              example: 3
+                            feedback:
+                              type: "string"
+                              example: "Good Work!!"
+                  
+
+  /api/v1/project/{projectId}/request:
+    post:
+      tags:
+      - "Request"
+      summary: "Request to join a project overriding default settings"
+      description: "Only participant can request"
+      operationId: "requestProject"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: "ID of project"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Request to join a project"
+        required: true
+        schema:
+          $ref: "#/definitions/RequestToJoinProject"
+      responses:
+          "201":
+            description: "successfully joined"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Request raised succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/request/{requestId}:
+    put:
+      tags:
+      - "Request"
+      summary: "Approve or Decline a request to join a project"
+      description: "Only admin can request"
+      operationId: "updateRequest"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "requestId"
+        in: "path"
+        description: "ID of request"
+        required: true
+        type: "integer"
+        format: "int64"
+      - in: "body"
+        name: "body"
+        description: "Approve or Decline a request to join a project"
+        required: true
+        schema:
+          $ref: "#/definitions/UpdateRequestToJoinProject"
+      responses:
+          "201":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Request updated succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/request:
+    get:
+      tags:
+      - "Request"
+      summary: "Retrieve Request Details"
+      description: "Only admin and participant can retreive events"
+      operationId: "getRequests"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "status"
+        in: "query"
+        description: "status on which requests have to be filtered - APPROVED /REJECTED/ REQUESTED"
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Request details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/RequestListResponse"
+          "404":
+            description: "Not Found"
+
+  /api/v1/judge:
+    get:
+      tags:
+      - "Judge"
+      summary: "Retrieve Judges Details"
+      description: "Only admin retreive judges complete list"
+      operationId: "getJudges"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judge details retrieved successfully"
+                response_data:
+                  $ref: "#/definitions/JudgeListResponse"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "Judge"
+      summary: "Add a Judge"
+      description: "Only admin can add a judge"
+      operationId: "addJudge"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to add a judge"
+        required: true
+        schema:
+          $ref: "#/definitions/AddJudgeRequest"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judge added succesfully"
+                response_data:
+                  $ref: "#/definitions/ResponseData"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "Judge"
+      summary: "Delete judges in bulk"
+      description: "Delete judges in bulk"
+      operationId: "deleteJudges"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete judges"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+              
+      responses:
+          "201":
+            description: "Judges deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judges deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/judge/{judgeId}:
+    put:
+      tags:
+      - "Judge"
+      summary: "Update a Judge detail"
+      description: "Only admin can update a judge"
+      operationId: "updateJudge"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "judgeId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a judge"
+        required: true
+        schema:
+          $ref: "#/definitions/AddJudgeRequest"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judge updated succesfully"
+                response_data:
+                  $ref: "#/definitions/ResponseData"
+          "404":
+            description: "Not Found"
+  
+  /api/v1/judge/projects:
+    get:
+      tags:
+      - "Judge"
+      summary: "Retrieve project of judge logged in"
+      description: "Only judge user would be allowed access this."
+      operationId: "getJudgeProjects"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Judge details retrieved successfully"
+                response_data:
+                  $ref: "#/definitions/JudgeProjectListResponse"
+          "404":
+            description: "Not Found"
+    
+  /api/v1/judge/{judgeId}/event/{eventId}/code-regenerate:
+    put:
+      tags:
+      - "Judge"
+      summary: "Only admin can regenerate new code for judge."
+      description: "Only admin can regenerate new code for judge."
+      operationId: "eventCodeRegenerate"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "judgeId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - name: "eventId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "JudgeCode regenerated succesfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "JudgeCode regenerated succesfully"
+                response_data:
+                    type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/sponsor:
+    get:
+      tags:
+      - "Sponsor"
+      summary: "Retrieve Sponsor Details"
+      description: "Only admin can retreive sponsors list"
+      operationId: "getSponsors"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Sponsor details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/Sponsor"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "Sponsor"
+      summary: "Add a Sponsor"
+      description: "Only admin can add a sponsor"
+      operationId: "addSponsor"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to add a sponsor"
+        required: true
+        schema:
+          $ref: "#/definitions/AddSponsorRequest"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Sponsor added succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "Sponsor"
+      summary: "Delete sponsors in bulk"
+      description: "Delete sponsors in bulk"
+      operationId: "deleteSponsors"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete sponsors"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Sponsors deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Sponsors deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/sponsor/{sponsorId}:
+    put:
+      tags:
+      - "Sponsor"
+      summary: "Update a Sponsor detail"
+      description: "Only admin can update a sponsor"
+      operationId: "updateSponsor"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "sponsorId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a judge"
+        required: true
+        schema:
+          $ref: "#/definitions/AddSponsorRequest"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Sponsor updated succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/scoring-categories:
+    get:
+      tags:
+      - "ScoreCategories"
+      summary: "Retrieve Scoring Categories Details"
+      description: "Only admin retreive scoring-categories complete list"
+      operationId: "getScoringCategories"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Scoring Categories details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/ScoreCategory"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "ScoreCategories"
+      summary: "Add a ScoreCategory"
+      description: "Only admin can add a ScoreCategory"
+      operationId: "addScoreCategory"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Add a ScoreCategory"
+        required: true
+        schema:
+          $ref: "#/definitions/AddScoreCategoryRequest"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "ScoreCategory added succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "ScoreCategories"
+      summary: "Delete score-categories in bulk"
+      description: "Delete score-categories in bulk"
+      operationId: "deleteScoreCategories"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete score-categories"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Score-categories deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Score-categories deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/scoring-categories/{scoringCategoryId}:
+    put:
+      tags:
+      - "ScoreCategories"
+      summary: "Update a ScoreCategory"
+      description: "Only admin can update a ScoreCategory"
+      operationId: "updateScoreCategory"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "scoringCategoryId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a ScoreCategory"
+        required: true
+        schema:
+          $ref: "#/definitions/AddScoreCategoryRequest"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "ScoreCategory updated succesfully"
+                response_data:
+                  $ref: "#/definitions/ResponseData"
+          "404":
+            description: "Not Found"
+
+  /api/v1/winner-categories:
+    get:
+      tags:
+      - "WinnerCategories"
+      summary: "Retrieve Winner Categories Details"
+      description: "Only admin retreive winner-categories complete list"
+      operationId: "getWinnerCategories"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Winner Categories details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/WinnerCategory"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "WinnerCategories"
+      summary: "Add a WinnerCategory"
+      description: "Only admin can add a WinnerCategory"
+      operationId: "addWinnerCategory"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Request-ID"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Add a WinnerCategory"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+              example: "First Prize"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "WinnerCategory added succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "WinnerCategories"
+      summary: "Delete winner-categories in bulk"
+      description: "Delete winner-categories in bulk"
+      operationId: "deleteWinnerCategories"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete winner-categories"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Winner-categories deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Winner-categories deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/winner-categories/{winnerCategoryId}:
+    put:
+      tags:
+      - "WinnerCategories"
+      summary: "Update a WinnerCategory"
+      description: "Only admin can update a WinnerCategory"
+      operationId: "updateWinnerCategory"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "winnerCategoryId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a WinnerCategory"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+              example: "First Prize"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "WinnerCategory updated succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/project-type:
+    get:
+      tags:
+      - "ProjectType"
+      summary: "Retrieve Project Types Details"
+      description: "Only admin retreive project-types complete list"
+      operationId: "getProjectTypes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Project Types details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/ProjectType"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "ProjectType"
+      summary: "Add a ProjectType"
+      description: "Only admin can add a ProjectType"
+      operationId: "addProjectType"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Add a ProjectType"
+        required: true
+        schema:
+          $ref: "#/definitions/AddProjectType"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "ProjectType added succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "ProjectType"
+      summary: "Delete project-types in bulk"
+      description: "Delete project-types in bulk"
+      operationId: "deleteProjectTypes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete project-types"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Project-types deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Project-types deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/project-type/{projectTypeId}:
+    put:
+      tags:
+      - "ProjectType"
+      summary: "Update a ProjectType"
+      description: "Only admin can update a ProjectType"
+      operationId: "updateProjectType"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectTypeId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a ProjectType"
+        required: true
+        schema:
+          $ref: "#/definitions/AddProjectType"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "ProjectType updated succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+  
+  /api/v1/course-code:
+    get:
+      tags:
+      - "CourseCode"
+      summary: "Retrieve Course Code Details"
+      description: "Only admin retreive course-codes complete list"
+      operationId: "getCourseCodes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Course-Code details retrieved successfully"
+                response_data:
+                  type: "array"
+                  items:
+                    $ref: "#/definitions/CourseCode"
+          "404":
+            description: "Not Found"
+
+    post:
+      tags:
+      - "CourseCode"
+      summary: "Add a CourseCode"
+      description: "Only admin can add a CourseCode"
+      operationId: "addCourseCode"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Add a CourseCode"
+        required: true
+        schema:
+          $ref: "#/definitions/AddCourseCode"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "CourseCode added succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+    
+    delete:
+      tags:
+      - "CourseCode"
+      summary: "Delete course-codes in bulk"
+      description: "Delete course-codes in bulk"
+      operationId: "deleteCourseCodes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to delete course-codes"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            ids:
+              $ref: "#/definitions/ArrayOfInt"
+      responses:
+          "201":
+            description: "Course-codes deleted successfully"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Course-codes deleted successfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/course-code/{courseCodeId}:
+    put:
+      tags:
+      - "CourseCode"
+      summary: "Update a CourseCode"
+      description: "Only admin can update a CourseCode"
+      operationId: "updateCourseCode"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "courseCodeId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Request to update a CourseCode"
+        required: true
+        schema:
+          $ref: "#/definitions/AddCourseCode"
+      responses:
+          "200":
+            description: "successfully updated"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "CourseCode updated succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/score/project/{projectId}:
+    post:
+      tags:
+      - "Scoring"
+      summary: "Add a Scoring to a Project"
+      description: "Only judge can add a Scores"
+      operationId: "addScoring"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "projectId"
+        in: "path"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Add a Scoring to a Project"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            scoring:
+              type: array
+              items:
+                $ref: "#/definitions/Score"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Scores posted succesfully"
+                response_data:
+                  type: "object"
+          "404":
+            description: "Not Found"
+
+  /api/v1/content/bulk-upload:
+    post:
+      tags:
+      - "Content"
+      summary: "Add entities in bulk"
+      description: "Only admin can add in bulk"
+      operationId: "bulkUpload"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Bulk Upload entities with the help of a csv"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            upload_type:
+              type: "string"
+              example: "PROJECT"
+            file:
+              type: "string"
+              example: "C://User/Desktop/projects.xlsx"
+      responses:
+          "201":
+            description: "successfully added"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Bulk-Upload successful"
+                response_data:
+                  type: "object"
+                  properties:
+                    name:
+                        type: "string"
+                        example: "MS Project Development - 2022"
+                    project_type_name:
+                      type: "string"
+                      example: "Development"
+                    course_code:
+                      type: "string"
+                      example: "CSE-611"
+                    team_size:
+                      type: "integer"
+                      example: 5
+                    client_name:
+                      type: "string"
+                      example: "Alan Hunt"
+                    client_company:
+                      type: "string"
+                      example: "UB"
+                    client_email:
+                      type: "string"
+                      example: "ahunt@buffalo.edu"
+                    project_link:
+                      type: "string"
+                      example: "http://stark.cse.buffalo.edu:8000"
+                    status:
+                      type: "string"
+                      example: "FAILED"
+                    result:
+                      type: "string"
+                      example: "Invalid course-code"
+                    team:
+                      type: "string"
+                      example: "joh@abc.com,doe@abc.com"
+                    
+          "404":
+            description: "Not Found"
+
+    get:
+      tags:
+      - "Content"
+      summary: "Retrieve Bulk-Upload templates"
+      description: "Only admin retreive bulk-upload templates"
+      operationId: "getBulkUploadTemplates"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      - name: "upload_type"
+        in: "query"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Project Types details retrieved successfully"
+                response_data:
+                  type: "object"
+                  properties:
+                    file:
+                      type: "string"
+                      example: "template.xlsx"
+          "404":
+            description: "Not Found"
+
+  /api/v1/content/bulk-upload/types:
+    get:
+      tags:
+      - "Content"
+      summary: "Retrieve Bulk-Upload types"
+      description: "Only admin retreive bulk-upload types"
+      operationId: "getBulkUploadTypes"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Access-Token"
+        in: "header"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "BulkUpload types retrieved successfully."
+                response_data:
+                  type: "array"
+                  items:
+                    type: "object"
+                    properties:
+                      upload_type:
+                        type: "string"
+                        example: "PROJECT"
+          "404":
+            description: "Not Found"
+
+  /api/v1/content/download:
+    get:
+      tags:
+      - "Content"
+      summary: "Downloads content from the path"
+      description: "Downloads content from the path"
+      operationId: "downloadContent"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "path"
+        in: "query"
+        description: ""
+        required: true
+        type: "string"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: string
+              format: binary
+          "404":
+            description: "Not Found"
+  
+  /api/v1/public/event:
+    get:
+      tags:
+      - "Public"
+      summary: "Retrieve all Events via public endpoint"
+      description: "Retrieve all Events via public endpoint"
+      operationId: "getPublicEvents"
+      produces:
+      - "application/json"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              $ref: "#/definitions/EventGetResponse"
+                  
+          "404":
+            description: "Not Found"
+  
+  /api/v1/public/event/{eventId}:
+    get:
+      tags:
+      - "Public"
+      summary: "Retrieve EventDetails via public endpoint"
+      description: "Retrieve EventDetails via public endpoint"
+      operationId: "getPublicEventDetail"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "ID of event"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+          "200":
+            description: "successful"
+            schema:
+              type: "object"
+              properties:
+                response_str:
+                    type: "string"
+                    example: "Event detail retrieved successfully!!"
+                response_data:
+                  $ref: "#/definitions/eventProjectResponse"
+                  
+          "404":
+            description: "Not Found"
+    
+definitions:
+  Login:
+    type: "object"
+    properties:
+      email_id:
+        type: "string"
+        example: "john.doe@abc.com"
+      password:
+        type: "string"
+        example: "sha256 hash password"
+      code:
+        type: "string"
+        example: "event_code"
+  refreshTokenResponse:
+    type: "object"
+    properties:
+      access_token:
+        type: "string"
+        example: "jwt_token"
+      refresh_token:
+        type: "string"
+        example: "refresh_token_uuid"
+      user_id:
+        type: "integer"
+        example: "1"
+      email:
+        type: "string"
+        example: "john.doe@abc.com"
+      role:
+        type: "string"
+        example: "participant"
+  LoginResponse:
+    type: "object"
+    required:
+    - "user_id"
+    - "access_token"
+    - "refresh_token"
+    - "email"
+    - "role"
+    properties:
+      user_id:
+        type: "integer"
+        format: "int64"
+      access_token:
+        type: "string"
+        example: "access_token"
+      refresh_token:
+        type: "string"
+        example: "refresh_token"
+      email:
+        type: "string"
+        example: "john.doe#abc.com"
+      role:
+        type: "string"
+        example: "admin"
+        description: "choices - admin, judge, participant"
+  User:
+    type: "object"
+    properties:
+      user_id:
+        type: "integer"
+        example: "1"
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      email:
+        type: "string"
+        example: "John@abc.com"
+      image:
+        type: "string"
+      status:
+        type: "string"
+        example: "ACTIVE"
+  
+  UserByAdmin:
+    type: "object"
+    properties:
+      user_id:
+        type: "integer"
+        example: "1"
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      email:
+        type: "string"
+        example: "John@abc.com"
+      image:
+        type: "string"
+      status:
+        type: "string"
+        example: "ACTIVE"
+      enrollment_status:
+        type: "string"
+        example: "ENROLLED"
+        
+  Signup:
+    type: "object"
+    required:
+    - "email"
+    - "password"
+    properties:
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      email:
+        type: "string"
+        example: "John@abc.com"
+      password:
+        type: "string"
+        example: "password"
+      image:
+        type: "string"
+  SignupAdmin:
+    type: "object"
+    required:
+    - "email"
+    properties:
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      email:
+        type: "string"
+        example: "John@abc.com"
+      role:
+        type: "string"
+        example: "PARTICIPANT"
+      image:
+        type: "string"
+  SignupResponse:
+    type: "object"
+    properties:
+      user_id:
+        type: "string"
+        example: "1"
+  ProfileUpdate:
+    type: "object"
+    properties:
+      image:
+        type: "string"
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      old_password:
+        type: "string"
+        example: "old_password"
+      new_password:
+        type: "string"
+        example: "new_password"
+  
+  ProfileUpdateAdmin:
+    type: "object"
+    properties:
+      image:
+        type: "string"
+      first_name:
+        type: "string"
+        example: "John"
+      middle_name:
+        type: "string"
+        example: "f"
+      last_name:
+        type: "string"
+        example: "kennedy"
+      email:
+        type: "string"
+        example: "john@abc.com"
+      role:
+        type: "string"
+        example: "ADMIN"
+      status:
+        type: "string"
+        example: "BLOCK"
+        
+  EventRequest:
+    type: "object"
+    properties:
+      name:
+          type: "string"
+          example: "MS Project Development - 2022"
+      logo:
+        type: "string"
+        example: "C:/User/Desktop/event_logo.jpg"
+      location:
+        type: "string"
+        example: "Davis 310, UB"
+      description:
+        type: "string"
+        example: ""
+      date:
+        type: "string"
+        example: ['2022-06-25T01:43:43.451Z', '2022-07-01T01:44:53.451Z']
+      sponsors:
+          $ref: "#/definitions/ArrayOfInt"
+      judges:
+          $ref: "#/definitions/ArrayOfInt"
+      projects:
+          $ref: "#/definitions/ArrayOfInt"
+      winner_categories:
+          $ref: "#/definitions/ArrayOfInt"
+  UpdateEvent:
+    type: "object"
+    properties:
+      name:
+          type: "string"
+          example: "MS Project Development - 2022"
+      logo:
+        type: "string"
+        example: "C:/User/Desktop/event_logo.jpg"
+      location:
+        type: "string"
+        example: "Davis 310, UB"
+      description:
+        type: "string"
+        example: ""
+      date:
+        type: "string"
+        example: ['2022-06-25T01:43:43.451Z', '2022-07-01T01:44:53.451Z']
+  ProjectRequest:
+    type: object
+    properties:
+      name:
+          type: "string"
+          example: "MS Project Development - 2022"
+      description:
+        type: "string"
+        example: ""
+      project_type_id:
+        type: "integer"
+        example: 1
+      attachments:
+        $ref: "#/definitions/ArrayOfStr"
+      course_code_id:
+        type: "integer"
+        example: 1
+      team_size:
+        type: "integer"
+        example: 5
+      client_name:
+        type: "string"
+        example: "Alan Hunt"
+      client_company:
+        type: "string"
+        example: "UB"
+      client_email:
+        type: "string"
+        example: "ahunt@buffalo.edu"
+      project_link:
+        type: "string"
+        example: "http://stark.cse.buffalo.edu:8000"
+  EventResponse:
+    type: "object"
+    properties:
+      response_str:
+          type: "string"
+          example: "Event added successfully"
+      response_data:
+        $ref: "#/definitions/ResponseData"
+  ProjectResponse:
+    type: "object"
+    properties:
+      response_str:
+          type: "string"
+          example: "Project added successfully"
+      response_data:
+        $ref: "#/definitions/ResponseData"
+  ProjectUpdateResponse:
+    type: "object"
+    properties:
+      response_str:
+          type: "string"
+          example: "Project updated successfully"
+      response_data:
+        $ref: "#/definitions/ResponseData"
+  ResponseData:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+  ArrayOfInt:
+    type: array
+    items:
+      type: integer
+  ArrayOfStr:
+    type: array
+    items:
+      type: "string"
+  Event:
+    type: "object"
+    properties:
+      event_id:
+          type: "string"
+          example: "event_123"
+      name:
+          type: "string"
+          example: "MS Project Development - 2022"
+      logo:
+          type: "string"
+          example: "C:/User/Desktop/event_logo.jpg"
+      location:
+          type: "string"
+          example: "Davis 310, UB"
+      description:
+        type: "string"
+        example: ""
+      date:
+        type: "string"
+        example: ['2022-06-25T01:43:43.451Z', '2022-07-01T01:44:53.451Z']
+  Winner:
+    type: "object"
+    properties:
+      project_id:
+          type: "string"
+          example: "proj_123"
+      project_name:
+          type: "string"
+          example: "seamless judging"
+      winner_category:
+          type: "integer"
+          example: 1
+      winner_category_name:
+          type: "string"
+          example: "First Prize"
+  Sponsor:
+    type: "object"
+    properties:
+      sponsor_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "University at Buffalo"
+      logo:
+          type: "string"
+          example: "logo.png"
+  AddSponsorRequest:
+    type: "object"
+    properties:
+      name:
+          type: "string"
+          example: "University at Buffalo"
+      logo:
+          type: "string"
+          example: "logo.png"
+  WinnerCategory:
+    type: "object"
+    properties:
+      winner_category_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "First Prize"
+  Judge:
+    type: "object"
+    properties:
+      user_id:
+          type: integer
+          example: 1
+      first_name:
+          type: "string"
+          example: "John"
+      middle_name:
+          type: "string"
+          example: ""
+      last_name:
+          type: "string"
+          example: "Doe"
+      email:
+          type: "string"
+          example: "john@abc.com"
+      status:
+          type: "string"
+          example: "ACTIVE"
+          
+  Score:
+    type: "object"
+    properties:
+      score_category_id:
+          type: integer
+          example: 1
+      score:
+          type: integer
+          example: 3
+      feedback:
+          type: "string"
+          example: "Good Work"
+
+  ScoreCategory:
+    type: "object"
+    properties:
+      score_category_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "Innovative"
+      scale:
+          type: "integer"
+          example: 3
+
+  ProjectType:
+    type: "object"
+    properties:
+      project_type_id:
+          type: integer
+          example: 1
+      name:
+          type: string
+          example: "Research"
+      scoring_categories:
+          type: array
+          items:
+            $ref: "#/definitions/ScoreCategory"
+  
+  CourseCode:
+    type: "object"
+    properties:
+      course_code_id:
+          type: integer
+          example: 1
+      name:
+          type: string
+          example: "MS Project Development"
+      code:
+          type: string
+          example: "CSE-611"
+  
+  AddCourseCode:
+    type: "object"
+    properties:
+      name:
+          type: string
+          example: "MS Project Development"
+      code:
+          type: string
+          example: "CSE-611"
+
+  AddProjectType:
+    type: "object"
+    properties:
+      name:
+          type: string
+          example: "Research"
+      team_size:
+          type: integer
+          example: 5
+      scoring_categories:
+          $ref: "#/definitions/ArrayOfInt"
+
+  AddScoreCategoryRequest:
+    type: "object"
+    properties:
+      name:
+          type: "string"
+          example: "Innovative"
+      scale:
+          type: "string"
+          example: "1-3"
+  
+  JudgeProjectListResponse:
+    type: "object"
+    properties:
+      project_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "Seamless Judging Project"
+      description:
+          type: "string"
+          example: "john@abc.com"
+      project_type_id:
+          type: integer
+          example: 1
+      project_type_name:
+          type: "string"
+          example: "Development"
+      course_code_id:
+          type: integer
+          example: 1
+      course_code:
+          type: "string"
+          example: "CSE-611"
+      course_code_name:
+          type: "string"
+          example: "MS Project Development"
+      team:
+          type: "array"
+          items:
+            $ref: "#/definitions/Judge"
+      table_number:
+          type: "integer"
+          example: 1
+      rated:
+          type: "boolean"
+          example: True
+      scoring_categories:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              score_category_id:
+                type: "integer"
+                example: 1
+              name:
+                type: "string"
+                example: "Implementation"
+              scale:
+                type: "integer"
+                example: 3
+              value:
+                type: "integer"
+                example: 3
+
+  ProjectListResponse:
+    type: "object"
+    properties:
+      project_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "Seamless Judging Project"
+      description:
+          type: "string"
+          example: "john@abc.com"
+      project_type_id:
+          type: integer
+          example: 1
+      project_type_name:
+          type: "string"
+          example: "Development"
+      course_code_id:
+          type: integer
+          example: 1
+      course_code:
+          type: "string"
+          example: "CSE-611"
+      course_code_name:
+          type: "string"
+          example: "MS Project Development"
+      team:
+          type: "array"
+          items:
+            $ref: "#/definitions/Judge"
+      attachments:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+                example: "file.pdf"
+              content:
+                type: "string"
+                example: "C://file.pdf"
+
+  EventGetResponse:
+    type: object
+    properties:
+      response_str:
+        type: "string"
+        example: "Event retrieved successfully"
+      response_data:
+        type: "object"
+        properties:
+          upcoming_events:
+              type: "array"
+              items:
+                $ref: "#/definitions/Event"
+          past_events:
+              type: "array"
+              items:
+                $ref: "#/definitions/Event"
+      download_path:
+        type: "string"
+        example: "C://User/events.xlsx"
+        
+  EventGetDetailResponse:
+    type: object
+    properties:
+      response_str:
+        type: "string"
+        example: "Event retrieved successfully"
+      response_data:
+        type: "object"
+        properties:
+          event_id:
+              type: "string"
+              example: "event_123"
+          name:
+              type: "string"
+              example: "MS Project Development - 2022"
+          logo:
+              type: "string"
+              example: "C:/User/Desktop/event_logo.jpg"
+          location:
+              type: "string"
+              example: "Davis 310, UB"
+          description:
+            type: "string"
+            example: ""
+          date:
+            type: "string"
+            example: ['2022-06-25T01:43:43.451Z', '2022-07-01T01:44:53.451Z']
+          winners:
+            type: "array"
+            items:
+              $ref: "#/definitions/Winner"
+          judges:
+            type: "array"
+            items:
+              $ref: "#/definitions/Judge"
+
+  UploadContent:
+    type: "object"
+    properties:
+      uploaded_by:
+          $ref: "#/definitions/Judge"
+      "created_at":
+          type: "string"
+          example: "2022-05-05 12:00:00"
+      "content":
+          type: "string"
+          example: "file.jpg"
+      "content_type":
+          type: "string"
+          example: "poster"
+
+  ProjectGetDetailResponse:
+    type: "object"
+    properties:
+      project_id:
+          type: integer
+          example: 1
+      name:
+          type: "string"
+          example: "Seamless Judging Project"
+      description:
+          type: "string"
+          example: "john@abc.com"
+      project_type_id:
+          type: integer
+          example: 1
+      course_code_id:
+          type: integer
+          example: 1
+      team_size:
+        type: "integer"
+        example: 5
+      client_name:
+        type: "string"
+        example: "Alan Hunt"
+      client_company:
+        type: "string"
+        example: "UB"
+      client_email:
+        type: "string"
+        example: "ahunt@buffalo.edu"
+      project_link:
+        type: "string"
+        example: "http://stark.cse.buffalo.edu:8000"
+      attachments:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              name:
+                type: "string"
+                example: "file.pdf"
+              content:
+                type: "string"
+                example: "C://file.pdf"
+      events:
+        type: "array"
+        items:
+            $ref: "#/definitions/eventProjectResponse"
+      team:
+          type: "array"
+          items:
+            $ref: "#/definitions/Judge"
+      content:
+          type: "array"
+          items:
+            $ref: "#/definitions/UploadContent"
+  
+  eventProjectResponse:
+    type: "object"
+    properties:
+      event_id:
+          type: "string"
+          example: "event_123"
+      name:
+          type: "string"
+          example: "MS Project Development - 2022"
+      logo:
+          type: "string"
+          example: "C:/User/Desktop/event_logo.jpg"
+      location:
+          type: "string"
+          example: "Davis 310, UB"
+      date:
+          type: "string"
+          example: ["2022-07-02T22:00:00.000Z", "2022-07-05T22:48:33.000Z"]
+      description:
+        type: "string"
+        example: ""
+      winners:
+        type: "array"
+        items:
+          $ref: "#/definitions/Winner"
+      sponsors:
+        type: "array"
+        items:
+          $ref: "#/definitions/Sponsor"
+      judges:
+        type: "array"
+        items:
+          $ref: "#/definitions/Judge"
+      winner_categories:
+        type: "array"
+        items:
+          $ref: "#/definitions/WinnerCategory"
+
+  RequestToJoinProject:
+    type: "object"
+    properties:
+      request_type:
+          type: "string"
+          example: "TEAM_SIZE_EXCEEDED"
+      requestor_remarks:
+          type: "string"
+          example: "Allow me to join"
+
+  UpdateRequestToJoinProject:
+    type: "object"
+    properties:
+      status:
+          type: "string"
+          example: "APPROVE"
+      admin_remarks:
+          type: "string"
+          example: "Approved"
+
+  RequestListResponse:
+    type: "object"
+    properties:
+      request_id:
+          type: integer
+          example: 1
+      requestor_remarks:
+          type: "string"
+          example: "Allow me to join"
+      request_type:
+          type: "string"
+          example: "TEAM_SIZE_EXCEEDED"
+      admin_remarks:
+          type: "string"
+          example: ""
+      status:
+          type: "string"
+          example: "APPROVED"
+      project_name:
+          type: "string"
+          example: "Seamless Judging"
+      project_id:
+          type: "integer"
+          example: 1
+      requestor:
+          $ref: "#/definitions/Judge"
+
+  JudgeListResponse:
+    type: "object"
+    properties:
+      user_id:
+          type: integer
+          example: 1
+      first_name:
+          type: "string"
+          example: "John"
+      middle_name:
+          type: "string"
+          example: ""
+      last_name:
+          type: "string"
+          example: "Doe"
+      email:
+          type: "string"
+          example: "john@abc.com"
+      image:
+          type: "string"
+          example: "C://logo.png"
+      status:
+          type: "string"
+          example: "ACTIVE"
+      events:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            event_id:
+              type: "integer"
+              example: 1
+            name:
+              type: "string"
+              example: "Summer 2022"
+            location:
+              type: "string"
+              example: "Davis 301"
+            logo:
+              type: "string"
+              example: "C://event_logo.jpg"
+            date:
+              type: "string"
+              example: ["2022-06-06T01:43:43.000Z", "2022-07-06T04:43:43.000Z"]
+            code:
+              type: "string"
+              example: "12345432"
+
+  AddJudgeRequest:
+    type: "object"
+    properties:
+      first_name:
+          type: "string"
+          example: "John"
+      middle_name:
+          type: "string"
+          example: ""
+      last_name:
+          type: "string"
+          example: "Doe"
+      email:
+          type: "string"
+          example: "john@abc.com"
